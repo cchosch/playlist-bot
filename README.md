@@ -9,16 +9,15 @@ Then take your discord API token and put it in the `config.json` as follows:
 }
 ```
 
-This is the format for `playlists.json` you can
+This is the format for `playlists.json` you can manually add songs to it.
 
 ```json
 [
   {
-    "name": "placeholder guild", // guild name
-    "id": "1", // guild id
+    "name": "placeholder guild name",
+    "id": "1",
     "playlists": {
-      // playlists for that guild
-      "placeholder playlist": ["placeholder song 1"] // actual individual playlist
+      "placeholder playlist": ["placeholder song 1"]
     }
   }
 ]
