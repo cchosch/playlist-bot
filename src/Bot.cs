@@ -3,7 +3,7 @@ using Discord;
 using Discord.WebSocket;
 using System.Text.Json;
 using System.IO;
-
+using System.Diagnostics;
 
 namespace playlistbot
 {
@@ -11,6 +11,7 @@ namespace playlistbot
     {
         public DiscordSocketClient client = new DiscordSocketClient();
         public List<SlashCommand> slashCommands = new List<SlashCommand>();
+        public List<Guild> cachedGuilds = new List<Guild>();
 
         public static void Main(String[] args) => new Bot().MainAsync().GetAwaiter().GetResult();
         
@@ -36,6 +37,22 @@ namespace playlistbot
             await Task.Delay(-1);
         }
 
+        public async Task readGuilds(){
+            var path = Directory.GetCurrentDirectory() + "\\playlists.json";
+            try { cachedGuilds = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Guild>>(File.ReadAllText(path)); }
+            catch(FileNotFoundException e) { File.Create(path); cachedGuilds = new List<Guild>();  }
+            if(cachedGuilds == null){
+                await Global.Logger(new LogMessage(LogSeverity.Warning,$"readGuilds()/{new StackFrame(1,true).GetFileLineNumber()}",path+" gave a null List<Guild>"));
+                cachedGuilds = new List<Guild>();
+            }
+        }
+
+        public async Task updateGuilds()
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsondone = JsonSerializer.Serialize(cachedGuilds, options);
+            await File.WriteAllTextAsync(Global.playlistPath, jsondone);
+        }
 
         public async Task Ready()
         {
@@ -51,76 +68,44 @@ namespace playlistbot
                             .AddOption("song", ApplicationCommandOptionType.String, "Song to add t nameo playlist", isRequired:true)
                             .AddOption("artist", ApplicationCommandOptionType.String, "Artist name");
                             slashCommands[i].impl = async (SocketSlashCommand cmd) => {
-                                /*WRITE TO FILE 
-
-
-                                guild HCP = new guild() { 
-                                    guildid = 334,
-                                    playlists = new Dictionary<string, string[]>()
-                                    {
-                                        ["bricker"] = new string[] { "tribe", "one time 4 your mind", "left" },
-                                    }
-                                };
-                                guild DMR = new guild() { 
-                                    guildid = 334,
-                                    playlists = new Dictionary<string, string[]>()
-                                    {
-                                        ["bricker"] = new string[] { "the world is yours", "ichi banger", "fuck seb" },
-                                    }
-                                };
-                                List<guild> servers = new List<guild> { HCP, DMR };
-                                var options = new JsonSerializerOptions { WriteIndented = true };
-                                string jsondone = JsonSerializer.Serialize(servers, options);
-                                string dir = Directory.GetCurrentDirectory()+"\\playlist.json";
-                                File.WriteAllTextAsy.ToLnc(dir, jsondone).GetAwaiter().GetResult();
-                                /**/
-                                /*READ FROM FILE*/
-                                #pragma warning disable CS8600
-                                var options = new JsonSerializerOptions { WriteIndented = true };
-                                var path = Directory.GetCurrentDirectory() + "\\playlists.json";
-                                List<Guild> guilds;
-                                try { guilds = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Guild>>(File.ReadAllText(path)); }
-                                catch(Exception e) { await Global.Logger(new LogMessage(LogSeverity.Error, e.Source, e.Message)); return; }
-                                if(guilds == null) { return; }
-                                #pragma warning restore CS8600
-                                /**/
-                                string playlist;
-                                string song;
-                                SocketGuild guild;
-
+                                await readGuilds();
                                 try{
                                     #pragma warning disable CS8600
-                                    playlist = cmd.Data.Options.ElementAt(0).Value.ToString();
-                                    song = cmd.Data.Options.ElementAt(1).Value.ToString();
-                                    var tguild = cmd.Channel as SocketGuildChannel;
-                                    guild = tguild.Guild;
+                                    #pragma warning disable CS8602
+                                    string playlist = cmd.Data.Options.ElementAt(0).Value!.ToString();
+                                    string song = cmd.Data.Options.ElementAt(1).Value.ToString();
+                                    SocketGuild guild = (cmd.Channel as SocketGuildChannel).Guild;
                                     #pragma warning restore CS8600
+                                    #pragma warning restore CS8602
+                                    if(playlist == null || song == null) { return;}
                                     
                                     try { song += cmd.Data.Options.ElementAt(2).Value.ToString(); }catch(Exception e) { e = new Exception(); }
-                                    bool[] found = new bool[2] { false, false };
-                                    foreach (Guild g in guilds){
+                                    bool found = false;
+                                    foreach (Guild g in cachedGuilds){
                                         if(guild.Id == Convert.ToUInt64(g.id)){
-                                            found[0] = true;
-                                            if (g.playlists.ContainsKey(playlist)){
-                                                found[1] = true;
+                                            found = true;
+                                            if (g.playlists.ContainsKey(playlist))
                                                 g.playlists[playlist].Add(song);
-                                                foreach(string s in g.playlists[playlist]) { 
-                                                Console.WriteLine(s);}
-                                            }
+                                            else
+                                                g.playlists.Add(playlist, new List<string>() { song }) ;
+                                            Console.WriteLine(g.ToString());
                                         }
                                     }
-                                    foreach(Guild g in guilds)
+                                    if (!found)
+                                    {
+                                        cachedGuilds.Add(new Guild(guild.Name, guild.Id.ToString(), new Dictionary<string, List<string>>() { { playlist , new List<string>()} }));
+                                    }
+                                    foreach(Guild g in cachedGuilds)
                                     {
                                         await Global.Logger(new LogMessage(LogSeverity.Debug, "GUILDS", g.ToString()));
                                     }
-                                    string jsondone = JsonSerializer.Serialize(guilds, options);
-                                    await File.WriteAllTextAsync(path, jsondone);
-                                    await cmd.RespondAsync(jsondone.ToString());
+                                    await updateGuilds();
                                 }catch(Exception e){
                                     await Global.Logger(new LogMessage(LogSeverity.Error, "Command " + cmd.CommandName, e.Message));
                                 }
                             };
                             break;
+                    default: await Global.Logger(new LogMessage(LogSeverity.Warning, "Ready()",""));break;
                 }
                 try { await client.CreateGlobalApplicationCommandAsync(slashCommands[i].builder.Build()); }
                 catch (Exception ex) { await Global.Logger(new LogMessage(LogSeverity.Error, ex.Source, ex.Message, exception: ex)); }

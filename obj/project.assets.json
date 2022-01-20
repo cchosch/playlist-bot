@@ -501,19 +501,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Colin\\.nuget\\packages\\": {}
+    "C:\\Users\\mrbob\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\workspace\\playlistBot\\playlistBot.csproj",
+      "projectUniqueName": "E:\\workspace\\playlist-bot\\playlistBot.csproj",
       "projectName": "playlistBot",
-      "projectPath": "E:\\workspace\\playlistBot\\playlistBot.csproj",
-      "packagesPath": "C:\\Users\\Colin\\.nuget\\packages\\",
-      "outputPath": "E:\\workspace\\playlistBot\\obj\\",
+      "projectPath": "E:\\workspace\\playlist-bot\\playlistBot.csproj",
+      "packagesPath": "C:\\Users\\mrbob\\.nuget\\packages\\",
+      "outputPath": "E:\\workspace\\playlist-bot\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Colin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\mrbob\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [

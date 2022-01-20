@@ -5,11 +5,11 @@ using Discord.WebSocket;
 
 
 namespace playlistbot{
-  public class Guild{
+    public class Guild{
     
-    public string id = "";
-    public string name = "";
-    public Dictionary<string,List<string>> playlists;
+        public string id = "";
+        public string name = "";
+        public Dictionary<string,List<string>> playlists;
 
         public override string ToString()
         {
@@ -17,11 +17,11 @@ namespace playlistbot{
         }
 
         public Guild(string name, string id, Dictionary<string,List<string>> playlists){
-      this.name = name;
-      this.id = id;
-      this.playlists = playlists;
+            this.name = name;
+            this.id = id;
+            this.playlists = playlists;
+        }
     }
-  }
 }
 
 
